@@ -29,7 +29,7 @@ vector<Agent> agents;
 vector<vector<string> > logs;
 char buffer[100];
 int r_free[1011];  // next available time for rooms
-int e_free[11][2];   // for elevators.
+int e_free[11][2];  // for elevators.
 
 int free_time(Agent& a) {
   if (a.type >= 0)
@@ -51,7 +51,7 @@ string make_time(int t) {
   t %= 3600;
   int mm = t / 60;
   t %= 60;
-  sprintf(buffer, "2d:2d:2d", hh, mm, t);
+  sprintf(buffer, "%02d:%02d:%02d", hh, mm, t);
   return string(buffer);
 }
 
@@ -71,16 +71,14 @@ int main() {
     if (id == '.') break;
     agents.push_back(Agent());
     Agent& agent = agents.back();
+    agent.id = id;
     agent.stime = get_time();
     while (true) {
       int id, time;
       cin >> id;
       if (id == 0) break;
       cin >> time;
-      if (id != agent.visits.back().id)
-        agent.visits.push(Visit(id, time));
-      else
-        agent.visits.back().time += time;
+      agent.visits.push(Visit(id, time));
     }
   }
   sort(agents.begin(), agents.end());
@@ -103,8 +101,11 @@ int main() {
     for (int i = 0; i < agents.size(); i++) {
       if (agents[i].finished) continue;
       int free = free_time(agents[i]);
-      if (max(free, agents[i].stime) < min_time) {
-        min_time = max(free, agents[i].stime);
+      int action_time = max(free, agents[i].stime);
+      if (agents[i].type >= 0)
+        action_time = (action_time + 4) / 5 * 5;
+      if (action_time < min_time) {
+        min_time = action_time;
         j = i;
         type = agents[i].type;
         if (agents[i].visits.empty())
@@ -128,8 +129,9 @@ int main() {
       // Use elevator.
       int target = (room_id == -1) ? 1 : room_id / 100;
       e_free[agents[j].floor][agents[j].type] = agents[j].stime + 5;
-      log_info(j, agents[j].stime, 30 * abs(target - agents[j].floor),
-               "Stay in elevator");
+      log_info(j, agents[j].stime,
+          agents[j].stime + 30 * abs(target - agents[j].floor),
+          "Stay in elevator");
       agents[j].stime += 30 * abs(target - agents[j].floor);
       agents[j].floor = target;
       // Walk and set next action.
@@ -154,6 +156,7 @@ int main() {
       if (agents[j].visits.empty()) {
         if (agents[j].floor == 1) {
           log_info(j, agents[j].stime, agents[j].stime + 30, "Exit");
+          agents[j].finished = true;
         } else {
           sprintf(buffer, "Transfer from room %04d to elevator", room_id);
           log_info(j, agents[j].stime, agents[j].stime + 10, buffer);
@@ -167,7 +170,7 @@ int main() {
                   new_room_id);
           log_info(j, agents[j].stime, agents[j].stime + 10, buffer);
           agents[j].stime += 10;
-          agents[j].type = 0;
+          agents[j].type = -1;
         } else {
           sprintf(buffer, "Transfer from room %04d to elevator", room_id);
           log_info(j, agents[j].stime, agents[j].stime + 10, buffer);

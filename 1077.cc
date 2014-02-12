@@ -31,7 +31,7 @@ int get_zero(int x) {
 
 void dump(int i) {
   string ops;
-  for (; i >= 0; i = f[i])
+  for (; i > 0; i = f[i])
     ops.append(1, op[i]);
   reverse(ops.begin(), ops.end());
   cout << ops << endl;
@@ -47,11 +47,8 @@ void insert(int x, char o) {
 int swap(int x, int i, int j) {
   static const int mask[9] = {100000000, 10000000, 1000000, 100000, 10000, 1000,
     100, 10, 1};
-  int a = (x / mask[i]) % 10, b = (x / mask[j]) % 10;
-  x -= a * mask[i];
-  x -= b * mask[j];
-  x += a * mask[j];
-  x += b * mask[i];
+  int fig = (x / mask[j]) % 10;
+  x = x - fig * mask[j] + fig * mask[i];
   return x;
 }
 
@@ -74,7 +71,7 @@ int main() {
       if (hash_put(next)) insert(next, 'r');
     }
     if (pos % 3 > 0) {
-      int next = swap(q[head], pos - 1, pos);
+      int next = swap(q[head], pos, pos - 1);
       if (hash_put(next)) insert(next, 'l');
     }
     if (pos < 6) {
@@ -82,7 +79,7 @@ int main() {
       if (hash_put(next)) insert(next, 'd');
     }
     if (pos > 3) {
-      int next = swap(q[head], pos - 3, pos);
+      int next = swap(q[head], pos, pos - 3);
       if (hash_put(next)) insert(next, 'u');
     }
     head++;

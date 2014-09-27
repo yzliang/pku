@@ -31,7 +31,7 @@ int num_used;  // #used patterns
 int num_free;  // #free cells (not including 'o')
 bool used[7];
 
-const int MAX_GAMES = 10;
+const int MAX_GAMES = 30;
 int num_games;  // num. of different games w.r.t all remaining 'x' squares.
 char games[MAX_GAMES][20][20];
 
@@ -108,10 +108,10 @@ void search(int x, int y) {
       }
     }
     if (old) return;
-    // Add game.
-    memcpy(games[num_games++], b, sizeof(b));
-    // Unique?
-    if (!is_unique())
+    // Add game if there are less than 30.
+    if (num_games < 30)
+      memcpy(games[num_games++], b, sizeof(b));
+    else
       yes = false;
     return;
   }
@@ -149,7 +149,8 @@ void search(int x, int y) {
       b[x + dx[i][j]][y + dy[i][j]] = '.';
     b[x][y] = '.';
     // Prune.
-    if (!yes) return;
+    if (!yes)
+      return;
   }
   // (x, y) is not covered.
   if (a[x][y] != 'x') {
@@ -185,6 +186,8 @@ int main() {
     num_games = 0;
     yes = true;
     search(0, 0);
+    if (yes)
+      yes = is_unique();
     cout << "Game #" << game_id++ << endl;
     cout << (yes ? "yes." : "no.") << endl << endl;
   }
